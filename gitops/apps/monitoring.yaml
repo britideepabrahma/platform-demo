@@ -12,6 +12,7 @@ spec:
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false   # scrape all ServiceMonitors
+            ruleSelectorNilUsesHelmValues: false        
         alertmanager: { enabled: false }                     # saves RAM
   destination: { server: https://kubernetes.default.svc, namespace: monitoring }
   syncPolicy:
