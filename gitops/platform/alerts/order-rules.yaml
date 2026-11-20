@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: orders-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack     # required, or Prometheus ignores the rule
+spec:
+  groups:
+    - name: orders
+      rules:
+        - alert: OrdersHighErrorRate
+          expr: |
+            100 * sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[2m]))
+              / sum(rate(http_server_duration_milliseconds_count[2m])) > 5
+          for: 2m
+          labels: { severity: warning }
+          annotations:
+            summary: "orders error rate above 5%"
