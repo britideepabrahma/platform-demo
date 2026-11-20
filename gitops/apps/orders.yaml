@@ -4,7 +4,7 @@ metadata: { name: orders, namespace: argocd }
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USER/platform-demo
+    repoURL: https://github.com/britideepabrahma/platform-demo
     targetRevision: main
     path: gitops/services/orders
   destination: { server: https://kubernetes.default.svc, namespace: demo }
