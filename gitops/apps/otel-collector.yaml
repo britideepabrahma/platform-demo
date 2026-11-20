@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata: { name: otel-collector, namespace: argocd }
+spec:
+  project: default
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-collector
+    targetRevision: "X.Y.Z"          # the version you just found
+    helm:
+      valuesObject:
+        mode: deployment
+        image:
+          repository: otel/opentelemetry-collector-contrib
+        command:
+          name: otelcol-contrib
+        ports:
+          prom-metrics:
+            enabled: true
+            containerPort: 8889
+            servicePort: 8889
+            protocol: TCP
+        serviceMonitor:
+          enabled: true
+          metricsEndpoints:
+            - port: prom-metrics
+        resources:
+          limits: { memory: 512Mi }
+        config:
+          exporters:
+            otlp/jaeger:
+              endpoint: jaeger.observability:4317
+              tls: { insecure: true }
+            prometheus:
+              endpoint: 0.0.0.0:8889
+            debug: {}
+          service:
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp/jaeger, debug]
+              metrics:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [prometheus]
+              logs: null
+  destination: { server: https://kubernetes.default.svc, namespace: observability }
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
